@@ -35,7 +35,7 @@ getgenv().dont_kick = {
 }
 local ps_owner1 = 4289962452
 --local ps_owner2 = 123
-local IPV4 = "127.0.0.1"
+local IPV4 = "192.168.1.12"
 
 -- Note: Only ps_owner1 is supported in V1, ps_owner2 is not implemented - Maybe in V2 (later)
 -- Following the note above, dont use lines 7-9 and line 16
