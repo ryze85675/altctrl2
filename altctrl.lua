@@ -33,6 +33,10 @@ getgenv().alts = {
         7171550388,
         7196463669,
         7208244806,
+        7216275048,
+        7210785505,
+        7249747171,
+        7171510592,
 }
 
 --getgenv().alts2 = { 
@@ -75,6 +79,10 @@ getgenv().dont_kick = {
         7171550388,
         7196463669,
         7208244806,
+        7216275048,
+        7210785505,
+        7249747171,
+        7171510592,
 }
 local ps_owner1 = 4289962452
 --local ps_owner2 = 123
@@ -671,7 +679,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					--local finished_M = string.format("%s %s %s", client_id, "BLOCK", user)
 					--ws:Send(finished_M)
 					local finished_M = string.format("%s %s %s", client_id, "UNFRIEND-USER", Channel_ID)
-					ws.send(finished_M)
+					ws:Send(finished_M)
 					shout("Please leave the game " .. user .. " or you will be kicked.")
 					wait(5)
 					shout("Last chance to leave " .. user .. "!")
