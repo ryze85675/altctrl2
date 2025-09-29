@@ -984,7 +984,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 		local function dropCashIfNeeded()
 			while true do
 				task.wait(15.5)
-				if countFloorCash() < 3000000 then
+				if countFloorCash() < 6000000 then
 					if localPlayer.UserId == ps_owner1 then
 						mainEvent:FireServer("DropMoney", 15000)
 					elseif table.find(getgenv().alts, localPlayer.UserId) and isOwnerInGame() then
