@@ -1,10 +1,10 @@
 getgenv().alts = { 
-	4291796146,
-	4291812263,
-	4292761654,
-	4294346964,
-	4294353674,
-	4294410165,
+        4291796146,
+        4291812263,
+        4292761654,
+        4294346964,
+        4294353674,
+        4294410165,
         4294417558,
         7048199627,
         7048214049,
@@ -40,16 +40,16 @@ getgenv().alts = {
 }
 
 --getgenv().alts2 = { 
---	123,
+--	7773209985,
 --}
 
 getgenv().dont_kick = {
-	4291796146,
-	4291812263,
-	4292761654,
-	4294346964,
-	4294353674,
-	4294410165,
+        4291796146,
+        4291812263,
+        4292761654,
+        4294346964,
+        4294353674,
+        4294410165,
         4294417558,
         7048199627,
         7048214049,
@@ -86,7 +86,7 @@ getgenv().dont_kick = {
 }
 local ps_owner1 = 4289962452
 --local ps_owner2 = 123
-local IPV4 = "192.168.1.9"
+local IPV4 = "192.168.1.9" 
 
 -- Note: Only ps_owner1 is supported in V1, ps_owner2 is not implemented - Maybe in V2 (later)
 -- Following the note above, dont use lines 7-9 and line 16
@@ -108,7 +108,6 @@ screenGui.IgnoreGuiInset = true
 screenGui.ResetOnSpawn = false
 screenGui.Parent = game:GetService("CoreGui")
 
--- Fullscreen black background (behind everything else)
 local bg = Instance.new("Frame")
 bg.Name = "Background"
 bg.Size = UDim2.new(1, 0, 1, 0)
@@ -118,7 +117,6 @@ bg.BorderSizePixel = 0
 bg.ZIndex = 0
 bg.Parent = screenGui
 
--- Central stats panel
 local panel = Instance.new("Frame")
 panel.Name = "StatsPanel"
 panel.Size = UDim2.new(0, 320, 0, 170)
@@ -130,7 +128,6 @@ panel.BackgroundTransparency = 0.05
 panel.ZIndex = 5
 panel.Parent = screenGui
 
--- Rounded corners (if supported)
 pcall(function()
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
@@ -171,7 +168,6 @@ title.Font = Enum.Font.GothamBold
 local walletLabel = makeLabel("Wallet", "Wallet: …")
 local deltaLabel = makeLabel("Delta", "Dropped: …")
 
--- FPS row container
 local fpsRow = Instance.new("Frame")
 fpsRow.Name = "FPSRow"
 fpsRow.BackgroundTransparency = 1
@@ -222,8 +218,6 @@ pcall(function()
     c.Parent = setBtn
 end)
 
-
--- Make panel draggable
 local dragging, dragStart, startPos
 panel.Active = true
 panel.InputBegan:Connect(function(input)
@@ -245,7 +239,6 @@ game:GetService("UserInputService").InputChanged:Connect(function(input)
     end
 end)
 
--- ================= Tracking Logic =================
 local currencyValueObj = localPlayer:WaitForChild("DataFolder"):WaitForChild("Currency")
 local startWallet = tonumber(currencyValueObj.Value)
 local lastWallet = startWallet
@@ -277,7 +270,6 @@ end
 
 currencyValueObj:GetPropertyChangedSignal("Value"):Connect(updateDisplay)
 
--- Fallback heartbeat (in case property signal missed)
 task.spawn(function()
     while task.wait(1) do
         updateDisplay()
@@ -286,7 +278,6 @@ end)
 
 updateDisplay()
 
--- ============== FPS Setter ==============
 local function applyFPS()
     local txt = fpsBox.Text:gsub("%s+", "")
     local v = tonumber(txt)
@@ -320,10 +311,8 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 		local client_id = "Server-1"
 		settings().Rendering.QualityLevel = 1
 		for _,v in ipairs(game:GetService("Workspace"):GetDescendants()) do
-			-- Remove all seating in the game (prevents bugs)
 			if v:IsA('Seat') or string.lower(v.Name):match('seat') then 
 				v:remove()
-			-- Handle parts and their properties
 			elseif v:IsA("Part") or v:IsA("UnionOperation") or v:IsA("MeshPart") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") or v:IsA("WedgePart") then
 				v.Material = "SmoothPlastic"
 				v.Reflectance = 0
@@ -332,7 +321,6 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 				elseif v.Parent == SPAWN then
 					v.CanCollide = true
 				elseif v.Parent == ITEMS_DROP then
-					-- Platform the item drop locations
 					local platform = Instance.new("Part")
 					platform.Name = "ItemPlatform"
 					platform.Anchored = true
@@ -341,13 +329,10 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					platform.Position = v.Position - Vector3.new(0, 3, 0)
 					platform.Parent = SPAWN
 				end
-			-- Destroy decals
 			elseif v:IsA("Decal") then
 				v:Destroy()
-			-- Handle particle effects
 			elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
 				v.Lifetime = NumberRange.new(0)
-			-- Modify explosion properties
 			elseif v:IsA("Explosion") then
 				v.BlastPressure = 1
 				v.BlastRadius = 1
@@ -487,25 +472,20 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 		
 		local function getChannelIdByUserId(userId)
 			for _, user in ipairs(allowedusers) do
-				-- Check if the userId matches
 				if user.userId == userId then
-					return user.channelId  -- Return the associated channelId
+					return user.channelId
 				end
 			end
-			-- If userId is not found
-			return nil  -- Return nil if the userId is not found
+			return nil
 		end
 		
 		
 		local function userExists(userId)
-			-- Iterate over the allowedusers table
 			for _, user in ipairs(allowedusers) do
-				-- Check if the userId matches
 				if user.userId == userId then
 					return true
 				end
 			end
-			-- Return false if no match is found
 			return false
 		end
 		
@@ -517,15 +497,12 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 		
 		local function removeUser(userId)
 			for index, user in ipairs(allowedusers) do
-				-- Check if the userId matches
 				if user.userId == userId then
-					-- Remove the user from the list
 					table.remove(allowedusers, index)
 					print("User " .. userId .. " has been removed.")
-					return  -- Exit the function after removing the user
+					return
 				end
 			end
-			-- If user was not found, print this message
 			print("User " .. userId .. " not found.")
 		end
 		
@@ -554,7 +531,6 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 			local function Track(user, amount, D_user_id, D_guild)
 				print("running track for " .. user)
 				print("Raw input amount: ", amount)
-				-- Process amount with currency post-fix
 				for postFix, value in pairs(currencyPostFixes) do
 					if string.find(amount, postFix) then
 						local rawNumberString = string.gsub(amount, postFix, "")
@@ -569,8 +545,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					warn("Invalid amount for user: " .. tostring(user))
 					return
 				end
-			
-				-- Update amount based on userList
+
 				if userList[user] then
 					local value = tonumber(userList[user])
 					amount = tonumber(amount)
@@ -587,12 +562,10 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 				end
 			
 				print("amount", amount)
-			
-				-- Wait for the player to be found in the game
+
 				repeat task.wait()
 				until game:GetService("Players"):FindFirstChild(user)
-				
-				-- Localize the target variable for each coroutine (this avoids shared state)
+
 				local target = game:GetService("Players"):FindFirstChild(user)
 				
 				print("target found: ", target)
@@ -600,7 +573,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 				local oldcurrency = tonumber(target:WaitForChild("DataFolder"):WaitForChild("Currency").Value)
 				local need = oldcurrency + amount
 				local Channel_ID = getChannelIdByUserId(user)
-				local User_ID = target.UserId  -- Correct User_ID from the localized 'target'
+				local User_ID = target.UserId
 				print("Channel_ID", Channel_ID)
 				print("User_ID", User_ID)
 				print("oldcurrency", oldcurrency)
@@ -608,65 +581,50 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 			
 				local discord_id = D_user_id or "False"
 				local discord_guild = D_guild or "False"
-				
-				-- Send starter data with correct User_ID
+
 				local starter_data = string.format("%s %s %s %s %s %s %s %s", client_id, "ADD-USER", Channel_ID, User_ID, oldcurrency, need, discord_id, discord_guild)
 				ws:Send(starter_data)
 				
-				local new = 0  -- Track the current currency value
-				local last_cash_value = 0  -- Track the previous currency value
-				local CASH_SPENT = 0  -- Track the total amount spent
-				local last_change_value = 0  -- Track if the currency changed
+				local new = 0
+				local last_cash_value = 0
+				local CASH_SPENT = 0
+				local last_change_value = 0
 				
-                local last_change_value = 0  -- Track if the currency changed
-                local last_sent_time = 0  -- Track when the last message was sent
-                local send_interval = 10  -- Interval in seconds between sends
-                
-                -- Monitor balance until the target has enough currency
+                local last_change_value = 0
+                local last_sent_time = 0
+                local send_interval = 10
+
                 repeat
                     task.wait()
                 
-                    -- Ensure the target player exists and is active
                     local target = game:GetService("Players"):FindFirstChild(user)
                 
                     if target then
-                        -- Get the current currency value
                         new = tonumber(target:WaitForChild("DataFolder"):WaitForChild("Currency").Value)
-                
-                        -- Only calculate CASH_SPENT when there is a decrease in the currency
+
                         if last_cash_value == 0 then
-                            -- Initial setup for last_cash_value
                             last_cash_value = new
                         else
-                            -- Track if the value has decreased (player spent currency)
                             if last_cash_value > new then
-                                -- Calculate how much has been spent
                                 local spent = last_cash_value - new
-                                -- Accumulate spent amount to CASH_SPENT
                                 CASH_SPENT = CASH_SPENT + spent
                             end
-                            -- Update last_cash_value with the most recent value
                             last_cash_value = new
                         end
                 
-                        -- Check if 10 seconds have passed since the last message
-                        local current_time = tick()  -- Returns current time in seconds
+                        local current_time = tick()
                         if current_time - last_sent_time >= send_interval then
-                            -- Prepare the update message to send
                             local updated = string.format("%s %s %s %s %s", client_id, "UPDATE-BALANCE", Channel_ID, new, CASH_SPENT)
                             ws:Send(updated)
-                
-                            -- Update last_sent_time to current time
+
                             last_sent_time = current_time
                         end
                 
-                        -- Check if there is no change in currency for this iteration
                         if new ~= last_change_value then
-                            last_change_value = new  -- Update last_change_value if it changed
+                            last_change_value = new
                         end
                     end
-                
-                -- Loop until the player's currency reaches the target or the player is not found
+
                 until new + CASH_SPENT >= need or target == nil
                 
 		
@@ -678,7 +636,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					ws:Send(updated2)
 					--local finished_M = string.format("%s %s %s", client_id, "BLOCK", user)
 					--ws:Send(finished_M)
-					local finished_M = string.format("%s %s %s", client_id, "UNFRIEND-USER", Channel_ID)
+					local finished_M = string.format("%s %s %s", client_id, "UNFRIEND-USER", Channel_ID, user)
 					ws:Send(finished_M)
 					shout("Please leave the game " .. user .. " or you will be kicked.")
 					wait(5)
@@ -737,7 +695,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 			end
 			
 			local function sendservercash()
-				local totalCurrency = 0  -- Initialize total currency to 0
+				local totalCurrency = 0
 				for _, player in pairs(game.Players:GetPlayers()) do
 					if table.find(getgenv().alts, player.UserId) then
 						local currency = player:WaitForChild("DataFolder"):WaitForChild("Currency")
@@ -800,16 +758,14 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 							print(player.Name, " is not in blocking them")
 							shout("Please leave the game " .. player.Name .. " or you will be kicked.")
 							wait(20)
-							
-							-- Use a localized variable for target2 here
+
 							local target2 = game:GetService("Players"):FindFirstChild(player.Name)
-							
-							-- Only proceed if target2 is found
+
 							if target2 then
-								local finished_L = string.format("%s %s %s", client_id, "BLOCK", player.Name)
+								local finished_L = string.format("%s %s %s", client_id, "UNFRIEND-USER", player.Name)
 								ws:Send(finished_L)
 								wait(10)
-								vipKick(target2)  -- Kick the player if target2 is found
+								vipKick(target2)
 							else
 								print("Target2 not found for player:", player.Name)
 							end
@@ -865,7 +821,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 								print("Drop command received")
 								if localPlayer.UserId == ps_owner1 then
 									print("Running stuff")
-									addUser(name, money) -- <-- Add this line!
+									addUser(name, money)
 									addUseralloweduser(name, Channel)
 									Track(name, money, d_id, g_id)
 								end
