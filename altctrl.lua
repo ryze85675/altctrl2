@@ -636,7 +636,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					ws:Send(updated2)
 					--local finished_M = string.format("%s %s %s", client_id, "BLOCK", user)
 					--ws:Send(finished_M)
-					local finished_M = string.format("%s %s %s", client_id, "UNFRIEND-USER", Channel_ID, user)
+					local finished_M = string.format("%s %s %s %s", client_id, "UNFRIEND-USER", Channel_ID, user)
 					ws:Send(finished_M)
 					shout("Please leave the game " .. user .. " or you will be kicked.")
 					wait(5)
@@ -940,7 +940,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 		local function dropCashIfNeeded()
 			while true do
 				task.wait(15.5)
-				if countFloorCash() < 6000000 then
+				if countFloorCash() < 5000000 then
 					if localPlayer.UserId == ps_owner1 then
 						mainEvent:FireServer("DropMoney", 15000)
 					elseif table.find(getgenv().alts, localPlayer.UserId) and isOwnerInGame() then
