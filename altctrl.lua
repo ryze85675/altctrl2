@@ -86,7 +86,7 @@ getgenv().dont_kick = {
 }
 local ps_owner1 = 4289962452
 --local ps_owner2 = 123
-local IPV4 = "192.168.1.9" 
+local IPV4 = "192.168.1.19" 
 
 -- Note: Only ps_owner1 is supported in V1, ps_owner2 is not implemented - Maybe in V2 (later)
 -- Following the note above, dont use lines 7-9 and line 16
@@ -727,23 +727,30 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 			local function onPlayerAdded(player)
 				
 				if localPlayer.UserId == ps_owner1 then
+                    task.wait(5)
+
 					loadingPlayers[player.Name] = {
 									userId = player.UserId,
 									joinTime = tick(),
 									channelId = userExists(player.Name) and getChannelIdByUserId(player.Name) or nil
 								}
-					local success = pcall(function()
-						player.CharacterAdded:Wait()
-						repeat
-							task.wait()
-						until player.Character and player.Character:FindFirstChild("FULLY_LOADED_CHAR") ~= nil        
-					end)
-                   
-					loadingPlayers[player.Name] = nil
+
+                    task.spawn(function()
+                        local success = pcall(function()
+                            player.CharacterAdded:Wait()
+                            repeat
+                                task.wait()
+                            until player.Character and player.Character:FindFirstChild("FULLY_LOADED_CHAR") ~= nil        
+                        end)
+
+                        if success and loadingPlayers[player.Name] then 
+                            print("Player fully loaded. Removing from loading list:", player.Name)
+                            loadingPlayers[player.Name] = nil 
+                        end
+                    end)
 
 					print("Player joined:", player.Name)
 					printTable(userList, "userList")
-					printTable(allowedusers, "allowedusers")
 					if userList[player.Name] then
 						print("player is in userlist adding them")
 						local remaining = userList[player.Name]
@@ -762,7 +769,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 							local target2 = game:GetService("Players"):FindFirstChild(player.Name)
 
 							if target2 then
-								local finished_L = string.format("%s %s %s", client_id, "UNFRIEND-USER", player.Name)
+								local finished_L = string.format("%s %s %s %s", client_id, "UNFRIEND-USER", "0", player.Name)
 								ws:Send(finished_L)
 								wait(10)
 								vipKick(target2)
@@ -775,7 +782,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 						end
 					end
 				end
-			end			
+			end
 			
 			Players.PlayerAdded:Connect(onPlayerAdded)
 
@@ -783,9 +790,15 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 			local function onPlayerRemoving(player)
 					if localPlayer.UserId == ps_owner1 then
 						if loadingPlayers[player.Name] then
-							local playerData = loadingPlayers[player.Name]
-							local loadTime = tick() - playerData.joinTime
-							
+                            local playerData = loadingPlayers[player.Name]
+                            local loadTime = tick() - playerData.joinTime
+
+                            if loadTime > 15 then
+                                print("Player left naturally after " .. loadTime .. "s. Suppressing LOAD-ERROR.")
+                                loadingPlayers[player.Name] = nil
+                                return
+                            end
+
 							print("Player left during loading:", player.Name, "after", loadTime, "seconds")
 
 							local channelId = playerData.channelId or "UNKNOWN"
