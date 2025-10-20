@@ -93,7 +93,6 @@ local IPV4 = "192.168.1.23"
 -- Note: Only ps_owner1 is supported in V1, ps_owner2 is not implemented - Maybe in V2 (later)
 -- Following the note above, dont use lines 7-9 and line 16
 
-
 local Players = game:GetService('Players')
 local Terrain = Workspace:FindFirstChild('Terrain')
 local Lighting = game:GetService("Lighting")
@@ -281,9 +280,6 @@ end)
 
 updateDisplay()
 
-local statusLabel = makeLabel("Status", "Status: Initializing...")
-statusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-
 local function applyFPS()
     local txt = fpsBox.Text:gsub("%s+", "")
     local v = tonumber(txt)
@@ -316,14 +312,6 @@ end)
 if table.find(getgenv().alts, localPlayer.UserId) then
 		local client_id = "Server-1"
 		settings().Rendering.QualityLevel = 1
-        
-        local ITEMS_DROP = Workspace:FindFirstChild("ItemsDrop")
-        local PLAYERS_FOLDER = Players:FindFirstChild("Players")
-        local SHOP = Workspace:FindFirstChild("Shop")
-        local SPAWN = Workspace:FindFirstChild("SpawnLocation") or Workspace:FindFirstChild("Spawn")
-        local LIGHTS = Workspace:FindFirstChild("Lights")
-        local PLAYER = localPlayer
-
 		for _,v in ipairs(game:GetService("Workspace"):GetDescendants()) do
 			if v:IsA('Seat') or string.lower(v.Name):match('seat') then 
 				v:remove()
@@ -355,14 +343,14 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 
 
 		local optimize = pcall(function()
-			local names = {"Players", "Camera", "Terrain", localPlayer.Name}
+			local names = {"Players", "Camera", "Terrain", localplayer.Name}
 			for _, instance in workspace:GetChildren() do
 				if not table.find(names, instance.Name) then
 					instance:Destroy()
 				end
 			end
 		
-			local names = {"Drop", localPlayer.Name}
+			local names = {"Drop", localplayer.Name}
 			for _, instance in workspace.Ignored:GetChildren() do
 				if not table.find(names, instance.Name) then
 					instance:Destroy()
@@ -475,7 +463,8 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 			game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("Shout", message)
 		end
 		
-				local function addUser(userId, value)
+		
+		local function addUser(userId, value)
 			userList[userId] = value  
 		end
 		
@@ -541,68 +530,56 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 				["m"] = 1000000,
 				["b"] = 1000000000,
 			}
-			local function Track(user, amount_or_goal, D_user_id, D_guild)
+			local function Track(user, amount, D_user_id, D_guild)
 				print("running track for " .. user)
-				print("Raw input amount/goal: ", amount_or_goal)
-
-				local amount_number = tonumber(amount_or_goal)
-				if not amount_number then
-					local amount_str = tostring(amount_or_goal)
-					if string.match(amount_str, "^%d+$") then
-						amount_number = tonumber(amount_str)
-					else
-						local found_postfix = false
-						for postFix, value in pairs(currencyPostFixes) do
-							if string.find(amount_str:lower(), postFix) then
-								local rawNumberString = string.gsub(amount_str:lower(), postFix, "")
-								local amountNumber = tonumber(rawNumberString)
-								if amountNumber then
-									amount_number = amountNumber * value
-									found_postfix = true
-									break
-								end
-							end
-						end
+				print("Raw input amount: ", amount)
+				for postFix, value in pairs(currencyPostFixes) do
+					if string.find(amount, postFix) then
+						local rawNumberString = string.gsub(amount, postFix, "")
+						local amountNumber = tonumber(rawNumberString)
+						amount = amountNumber * value
+						break
 					end
 				end
 
-				if not amount_number then
+				amount = tonumber(amount)
+				if not amount then
 					warn("Invalid amount for user: " .. tostring(user))
 					return
 				end
+
+				if userList[user] then
+					local value = tonumber(userList[user])
+					amount = tonumber(amount)
+					if value and amount then
+						if value < amount then
+							amount = amount + value
+						else
+							print("User:" .. user .. " has a higher or equal amount in userList, not updating.")
+						end
+					else
+						warn("Invalid value or amount for user: " .. tostring(user))
+					end
+					deleteUser(user)
+				end
+			
+				print("amount", amount)
 
 				repeat task.wait()
 				until game:GetService("Players"):FindFirstChild(user)
 
 				local target = game:GetService("Players"):FindFirstChild(user)
-				if not target then return end
-
+				
+				print("target found: ", target)
+			
+				local oldcurrency = tonumber(target:WaitForChild("DataFolder"):WaitForChild("Currency").Value)
+				local need = oldcurrency + amount
 				local Channel_ID = getChannelIdByUserId(user)
 				local User_ID = target.UserId
-
-				local oldcurrency = tonumber(target:WaitForChild("DataFolder"):WaitForChild("Currency").Value)
-				local need = nil
-
-				if userList[user] and amount_or_goal == tostring(userList[user]) then
-					need = userList[user]
-					deleteUser(user)
-					print("Rejoining abandoned order. Absolute goal set to: " .. tostring(need))
-                
-
-				else
-					need = oldcurrency + amount_number
-					print("New/Resumed order. Absolute goal calculated: " .. tostring(need))
-                    
-                    if userList[user] then
-                        deleteUser(user)
-                    end
-				end
-			
-				print("target found: ", target)
 				print("Channel_ID", Channel_ID)
 				print("User_ID", User_ID)
 				print("oldcurrency", oldcurrency)
-				print("need (absolute goal)", need)
+				print("need", need)
 			
 				local discord_id = D_user_id or "False"
 				local discord_guild = D_guild or "False"
@@ -659,10 +636,10 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					removeUser(user)
 					local updated2 = string.format("%s %s %s %s %s", client_id, "UPDATE-BALANCE", Channel_ID, new, CASH_SPENT)
 					ws:Send(updated2)
-					
+					--local finished_M = string.format("%s %s %s", client_id, "BLOCK", user)
+					--ws:Send(finished_M)
 					local finished_M = string.format("%s %s %s %s", client_id, "UNFRIEND-USER", Channel_ID, user)
 					ws:Send(finished_M)
-					
 					shout("Please leave the game " .. user .. " or you will be kicked.")
 					wait(5)
 					shout("Last chance to leave " .. user .. "!")
@@ -681,8 +658,9 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					end
 					return true
 				else
-					print("target left game, storing absolute goal for re-join")
-					addUser(user, need) 
+					print("target left game")
+					local remaining = need - new
+					addUser(user, remaining)
 					return false
 				end
 			end
@@ -777,9 +755,9 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					printTable(userList, "userList")
 					if userList[player.Name] then
 						print("player is in userlist adding them")
-						local absolute_goal = userList[player.Name]
-						print("Absolute Goal for " .. player.Name .. ": " .. absolute_goal)
-						Track(player.Name, tostring(absolute_goal))
+						local remaining = userList[player.Name]
+						print("Remaining amount for " .. player.Name .. ": " .. remaining)
+						Track(player.Name, tostring(remaining))
 						game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("VIP_CMD", "Summon", player)
 					elseif userExists(player.Name) then
 						print("user exists in list not kicking")
@@ -844,17 +822,10 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 						table.insert(parts, word)
 					end
 					print("Part[1] is equal to", parts[1])
-					
-					local action = parts[1]
-					if parts[1] and parts[1]:match("^Server-%d+$") and #parts >= 2 then
-						action = parts[2]
-					end
-
-					if action == "drop" then
+					if parts[1] == "drop" then
 						print("Drop command received")
-					
-						if #parts >= 6 then
-							print("Running stuff (full payload)")
+						if #parts > 2 then
+							print("more than 2 parts, checking...")
 							local money = parts[2]
 							local name = parts[3]
 							local Channel = parts[4]
@@ -862,16 +833,17 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 							local g_id = parts[6]
 							
 							local co = coroutine.create(function()
-								print("Drop command received (Coroutine)")
+								print("Drop command received")
 								if localPlayer.UserId == ps_owner1 then
-                                    addUser(name, money) 
+									print("Running stuff")
+									addUser(name, money)
 									addUseralloweduser(name, Channel)
-									Track(name, money, d_id, g_id) 
+									Track(name, money, d_id, g_id)
 								end
 							end)
 							coroutine.resume(co)
 						else
-							print("Invalid drop command format (payload too short: " .. #parts .. ")")
+							print("Invalid drop command format")
 						end
 					elseif parts[1] == "leaderboard" then
 						local co = coroutine.create(function()
@@ -926,12 +898,12 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 										end
 									else
 										print("Player is protected, not kicking: " .. targetPlayer.Name)
-										local error_msg = string.format("%s %s %s %s %s", client_id, "KICK-COMMAND-ERROR", "PROTECTED", targetPlayer.Name, targetPlayer.UserId)
+										local error_msg = string.format("%s %s %s %s", client_id, "KICK-COMMAND-ERROR", "PROTECTED", targetPlayer.Name, targetPlayer.UserId)
 										ws:Send(error_msg)
 									end
 								else
 									print("Target player not found: " .. targetUsername)
-									local error_msg = string.format("%s %s %s %s %s", client_id, "KICK-COMMAND-ERROR", "NOT_FOUND", targetUsername, "unknown")
+									local error_msg = string.format("%s %s %s %s", client_id, "KICK-COMMAND-ERROR", "NOT_FOUND", targetUsername, "unknown")
 									ws:Send(error_msg)
 								end
 							end)
@@ -983,7 +955,7 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 		local function dropCashIfNeeded()
 			while true do
 				task.wait(15.5)
-				if countFloorCash() < 5000000 then
+				if countFloorCash() < 4500000 then
 					if localPlayer.UserId == ps_owner1 then
 						mainEvent:FireServer("DropMoney", 15000)
 					elseif table.find(getgenv().alts, localPlayer.UserId) and isOwnerInGame() then
