@@ -38,6 +38,7 @@ getgenv().alts = {
         7249747171,
         7171510592,
         4289998266,
+        7256707094,
 }
 
 --getgenv().alts2 = { 
@@ -85,6 +86,7 @@ getgenv().dont_kick = {
         7249747171,
         7171510592,
         4289998266,
+        7256707094,
 }
 local ps_owner1 = 4289962452
 --local ps_owner2 = 123
@@ -530,54 +532,56 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 				["m"] = 1000000,
 				["b"] = 1000000000,
 			}
-			local function Track(user, amount_or_goal, D_user_id, D_guild)
+			local function Track(user, amount, D_user_id, D_guild)
 				print("running track for " .. user)
-				print("Raw input amount/goal: ", amount_or_goal)
-
-				local amount_number = tonumber(amount_or_goal)
-				if not amount_number then
-					local amount_str = tostring(amount_or_goal)
-					for postFix, value in pairs(currencyPostFixes) do
-						if string.find(amount_str, postFix) then
-							local rawNumberString = string.gsub(amount_str, postFix, "")
-							local amountNumber = tonumber(rawNumberString)
-							amount_number = amountNumber * value
-							break
-						end
+				print("Raw input amount: ", amount)
+				for postFix, value in pairs(currencyPostFixes) do
+					if string.find(amount, postFix) then
+						local rawNumberString = string.gsub(amount, postFix, "")
+						local amountNumber = tonumber(rawNumberString)
+						amount = amountNumber * value
+						break
 					end
 				end
 
-				if not amount_number then
+				amount = tonumber(amount)
+				if not amount then
 					warn("Invalid amount for user: " .. tostring(user))
 					return
 				end
+
+				if userList[user] then
+					local value = tonumber(userList[user])
+					amount = tonumber(amount)
+					if value and amount then
+						if value < amount then
+							amount = amount + value
+						else
+							print("User:" .. user .. " has a higher or equal amount in userList, not updating.")
+						end
+					else
+						warn("Invalid value or amount for user: " .. tostring(user))
+					end
+					deleteUser(user)
+				end
+			
+				print("amount", amount)
 
 				repeat task.wait()
 				until game:GetService("Players"):FindFirstChild(user)
 
 				local target = game:GetService("Players"):FindFirstChild(user)
-				if not target then return end
-
+				
+				print("target found: ", target)
+			
+				local oldcurrency = tonumber(target:WaitForChild("DataFolder"):WaitForChild("Currency").Value)
+				local need = oldcurrency + amount
 				local Channel_ID = getChannelIdByUserId(user)
 				local User_ID = target.UserId
-
-				local oldcurrency = tonumber(target:WaitForChild("DataFolder"):WaitForChild("Currency").Value)
-				local need = nil
-
-				if userList[user] then
-					need = amount_number
-					deleteUser(user)
-					print("Rejoining abandoned order. Absolute goal set to: " .. tostring(need))
-				else
-					need = oldcurrency + amount_number
-					print("New order. Absolute goal calculated: " .. tostring(need))
-				end
-			
-				print("target found: ", target)
 				print("Channel_ID", Channel_ID)
 				print("User_ID", User_ID)
 				print("oldcurrency", oldcurrency)
-				print("need (absolute goal)", need)
+				print("need", need)
 			
 				local discord_id = D_user_id or "False"
 				local discord_guild = D_guild or "False"
@@ -656,8 +660,9 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					end
 					return true
 				else
-					print("target left game, storing absolute goal for re-join")
-					addUser(user, need) 
+					print("target left game")
+					local remaining = need - new
+					addUser(user, remaining)
 					return false
 				end
 			end
@@ -752,9 +757,9 @@ if table.find(getgenv().alts, localPlayer.UserId) then
 					printTable(userList, "userList")
 					if userList[player.Name] then
 						print("player is in userlist adding them")
-						local absolute_goal = userList[player.Name]
-						print("Absolute Goal for " .. player.Name .. ": " .. absolute_goal)
-						Track(player.Name, tostring(absolute_goal))
+						local remaining = userList[player.Name]
+						print("Remaining amount for " .. player.Name .. ": " .. remaining)
+						Track(player.Name, tostring(remaining))
 						game:GetService("ReplicatedStorage"):WaitForChild("MainEvent"):FireServer("VIP_CMD", "Summon", player)
 					elseif userExists(player.Name) then
 						print("user exists in list not kicking")
